@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+
+{% block title %}Troca #{{ trade.id }}{% endblock %}
+
+{% block body %}
+
+    <h1>Troca #{{ trade.id }}</h1>
+
+    <div class="row mt-4 mb-4">
+        <div class="pb-3">
+            <span>Status: {{trade.status}}</span>
+            <br />
+            {% if trade.status == 'Fechada' %}
+                <span>Trocada em: {{trade.tradedAt|date('d/m/Y H:i:s')}}</span>
+                <br />
+            {% endif %}
+            
+            <span>Criada em: {{trade.createdAt|date('d/m/Y H:i:s')}}</span>
+            <br />
+            
+            {% if isFair %}
+                <span>Essa {{ trade.status == 'Fechada' ? 'foi' : 'é'}} uma troca justa</span>
+                <br />
+            {% else %}
+                <span>Essa não é uma troca justa</span>
+                <br />
+            {% endif %}
+        </div>
+        <form method="post" action="{{ path('trade_delete', {'id': trade.id}) }}" onsubmit="return confirm('Tem certeza que deseja apagar esta troca?');">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ trade.id) }}">
+            <a class="btn btn-{{ not isFair or trade.status == 'Fechada' ? 'secondary' : 'primary'}} {{ not isFair or trade.status == 'Fechada' ? 'disabled' : ''}}" href="{{ path('trade_close', {'id': trade.id}) }}">Trocar</a>
+            <button class="btn btn-danger">Apagar</button>
+        </form>
+    </div>
+    
+    
+    <div class="row mt-4 mb-4">
+        <div class="col-6 border p-3">
+            <h5>Estou oferecendo</h5>
+            
+            <div class="row">
+                {% for pokemon in offeredPokemons %}
+                    <div class="col-sm">
+                        <div class="card m-2" style="width: 9rem;">
+                            {% if trade.status == 'Aberta' %}
+                                <a href="{{ path('trade_offer_delete', {'id':trade.id, 'pokemon': pokemon.name}) ~ '?' ~ app.request.queryString }}" class="btn btn-danger notify-badge">X</a>
+                            {% endif %}
+                            <img src="{{pokemon.sprites.front_default}}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pokemon.name }}</h5>
+                                <p class="card-text">
+                                    XP: {{ pokemon.base_experience }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-6 border p-3">
+            <h5>Estou recebendo</h5>
+            
+            <div class="row">
+                {% for pokemon in receivedPokemons %}
+                    <div class="col-sm">
+                        <div class="card m-2" style="width: 9rem;">
+                            {% if trade.status == 'Aberta' %}
+                                <a href="{{ path('trade_receive_delete', {'id':trade.id, 'pokemon': pokemon.name}) ~ '?' ~ app.request.queryString }}" class="btn btn-danger notify-badge">X</a>
+                            {% endif %}
+                            <img src="{{pokemon.sprites.front_default}}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pokemon.name }}</h5>
+                                <p class="card-text">
+                                    XP: {{ pokemon.base_experience }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <span>Total XP: {{ offeredTotalXP }}</span>
+        </div>
+        <div class="col-6">
+            <span>Total XP: {{ receivedTotalXP }}</span>
+        </div>
+    </div>
+
+
+    {% if trade.status == 'Aberta' %}
+    <!--Polemon List-->
+    <div class="row mt-4 mb-4">
+        <table class="table table-striped">
+            <tbody>
+                {% for pokemon in pokemons.results %}
+                    <tr>
+                        <td>
+                            <img src="{{'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' ~ pokemon.id ~ '.png'}}" alt="{{pokemon.name}}" style="width: 50px">
+                            {{ pokemon.name|e }}
+                        </td>
+                        <td style="text-align: right">
+                            <a class="p-2" href="{{ path('trade_offer', {'id':trade.id, 'pokemon': pokemon.name}) ~ '?' ~ app.request.queryString }}">Oferecer</a>
+                            <a class="p-2" href="{{ path('trade_receive', {'id':trade.id, 'pokemon': pokemon.name}) ~ '?' ~ app.request.queryString }}">Receber</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination justify-content-end">
+                <li class="page-item {{ not pokemons.previous ? 'disabled' }}">
+                    <a class="page-link" href="{{ not pokemons.previous ? '#' : '?' ~ pokemons.previous }}" tabindex="-1">Previous</a>
+                </li>
+                <li class="page-item {{ not pokemons.next ? 'disabled' }}">
+                    <a class="page-link" href="{{ not pokemons.next ? '#' : '?' ~ pokemons.next }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <!--/.Pokemon List-->
+    {% endif %}    
+
+{% endblock %}

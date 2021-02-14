@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Trocas{% endblock %}
+
+{% block body %}
+    <h1>Trocas</h1>
+
+    <a href="{{ path('trade_create') }}" class="btn btn-primary">Criar nova Troca</a>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Criada Em</th>
+                <th scope="col">Status</th>
+                <th scope="col">Pokemons Oferecidos</th>
+                <th scope="col">Pokemons Recebidos</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for trade in trades %}
+            <tr>
+                <td><a href="{{ path('trade_show', {'id': trade.id}) }}">{{ trade.id }}</a></td>
+                <td><a href="{{ path('trade_show', {'id': trade.id}) }}">{{ trade.createdAt ? trade.createdAt|date('d/m/Y H:i:s') : '' }}</a></td>
+                <td><a href="{{ path('trade_show', {'id': trade.id}) }}">{{ trade.status }}</a></td>
+                <td>{{ trade.offered ? trade.offered|join(' + ') : '' }}</td>
+                <td>{{ trade.received ? trade.received|join(' + ') : '' }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Nenhuma troca realizada.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
